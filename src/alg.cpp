@@ -5,31 +5,31 @@
 #include <cctype>
 #include "bst.h"
 
-void makeTree(BST<std::string>& tree, const char* filename) {
-    std::ifstream srcFile(filename);
+void makeTree(BST<std::string>& tree, const char* filenick) {
+    std::ifstream srcFile(filenick);
 
     if (!srcFile.is_open()) {
         std::cout << "File error!" << std::endl;
         return;
     }
 
-    std::string currentWord = "";
-    int currentChar = srcFile.get();
+    std::string crrntWord = "";
+    int crretChar = srcFile.get();
 
-    while (currentChar != EOF) {
-        if (std::isalpha(currentChar)) {
-            currentWord += static_cast<char>(std::tolower(currentChar));
+    while (crrntChar != EOF) {
+        if (std::isalpha(crrntChar)) {
+            crrntWord += static_cast<char>(std::tolower(crrntChar));
         } else {
-            if (!currentWord.empty()) {
-                tree.insert(currentWord);
-                currentWord.clear();
+            if (!crrntWord.empty()) {
+                tree.insert(crrntWord);
+                crrntWord.clear();
             }
         }
-        currentChar = srcFile.get();
+        crrntChar = srcFile.get();
     }
 
-    if (!currentWord.empty()) {
-        tree.insert(currentWord);
+    if (!crrntWord.empty()) {
+        tree.insert(crrntWord);
     }
 
     srcFile.close();
