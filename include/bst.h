@@ -1,115 +1,127 @@
 // Copyright 2021 NNTU-CS
-#ifndef BST_H
-#define BST_H
+#ifndef INCLUDE_BST_H_
+#define INCLUDE_BST_H_
 
-#include <iostream>
-#include <algorithm>
+#include <string>
+#include <vector>
+#include <utility>
 
-template<typename T>
+template <class T>
 class BST {
-private:
+ private:
     struct Node {
-        T word;
-        int count;
+        T key;
+        int cnt;
         Node* left;
         Node* right;
-        
-        Node(const T& value) : word(value), count(1), left(nullptr), right(nullptr) {}
+
+        explicit Node(T val) {
+            key = val;
+            cnt = 1;
+            left = nullptr;
+            right = nullptr;
+        }
     };
-    
+
     Node* root;
-    int nodeCount;
-    
-    Node* insert(Node* node, const T& value) {
-        if (node == nullptr) {
-            nodeCount++;
-            return new Node(value);
+
+    void addNode(Node** cur, T val) {
+        if (*cur == nullptr) {
+            *cur = new Node(val);
+            return;
         }
-        
-        if (value < node->word) {
-            node->left = insert(node->left, value);
-        } else if (value > node->word) {
-            node->right = insert(node->right, value);
+
+        if (val == (*cur)->key) {
+            (*cur)->cnt++;
+            return;
+        }
+
+        if (val < (*cur)->key) {
+            addNode(&((*cur)->left), val);
         } else {
-            node->count++;
-        }
-        return node;
-    }
-    
-    bool search(Node* node, const T& value) const {
-        if (node == nullptr) {
-            return false;
-        }
-        
-        if (value < node->word) {
-            return search(node->left, value);
-        } else if (value > node->word) {
-            return search(node->right, value);
-        } else {
-            return true;
+            addNode(&((*cur)->right), val);
         }
     }
-    
-    int depth(Node* node) const {
-        if (node == nullptr) {
+
+    int findNode(Node* cur, T val) {
+        if (cur == nullptr) {
             return 0;
         }
-        return 1 + std::max(depth(node->left), depth(node->right));
+
+        if (cur->key == val) {
+            return cur->cnt;
+        }
+
+        if (val < cur->key) {
+            return findNode(cur->left, val);
+        }
+
+        return findNode(cur->right, val);
     }
-    
-    void inorderToArray(Node* node, Pair*& arr, int& index) const {
-        if (node == nullptr) {
+
+    int calcDepth(Node* cur) {
+        if (cur == nullptr) {
+            return 0;
+        }
+
+        int l = calcDepth(cur->left);
+        int r = calcDepth(cur->right);
+
+        if (l > r) {
+            return l + 1;
+        }
+
+        return r + 1;
+    }
+
+    void clearTree(Node* cur) {
+        if (cur == nullptr) {
             return;
         }
-        
-        inorderToArray(node->left, arr, index);
-        arr[index++] = {node->word, node->count};
-        inorderToArray(node->right, arr, index);
+
+        clearTree(cur->left);
+        clearTree(cur->right);
+
+        delete cur;
     }
-    
-    void clear(Node* node) {
-        if (node == nullptr) {
+
+    void fillVec(Node* cur,
+        std::vector<std::pair<std::string, int>>* vec) {
+        if (cur == nullptr) {
             return;
         }
-        clear(node->left);
-        clear(node->right);
-        delete node;
+
+        fillVec(cur->left, vec);
+
+        vec->push_back(std::make_pair(cur->key, cur->cnt));
+
+        fillVec(cur->right, vec);
     }
-    
-public:
-    struct Pair {
-        T word;
-        int count;
-    };
-    
-    BST() : root(nullptr), nodeCount(0) {}
-    
+
+ public:
+    BST() {
+        root = nullptr;
+    }
+
     ~BST() {
-        clear(root);
+        clearTree(root);
     }
-    
-    void insert(const T& value) {
-        root = insert(root, value);
+
+    void insert(T val) {
+        addNode(&root, val);
     }
-    
-    bool search(const T& value) const {
-        return search(root, value);
+
+    int search(T val) {
+    return findNode(root, val);
     }
-    
-    int depth() const {
-        return depth(root);
+
+    int depth() {
+        return calcDepth(root) - 1;
     }
-    
-    int size() const {
-        return nodeCount;
-    }
-    
-    int getSortedArray(Pair*& arr) const {
-        arr = new Pair[nodeCount];
-        int index = 0;
-        inorderToArray(root, arr, index);
-        return nodeCount;
+
+    void getWords(std::vector<std::pair<std::string, int>>* vec) {
+        fillVec(root, vec);
     }
 };
 
-#endif // INCLUDE_BST_H_
+#endif  // INCLUDE_BST_H_
