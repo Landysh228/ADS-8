@@ -1,6 +1,13 @@
 // Copyright 2021 NNTU-CS
+#include <string>
 #include "bst.h"
 
+void makeTree(BST<std::string> &tree, const char *filenick);
+void printFreq(BST<std::string> &tree);
+
 int main() {
-    return 0;
+  BST<std::string> dictionary;
+  makeTree(dictionary, "src/war_peace.txt");
+  printFreq(dictionary);
+  return 0;
 }
