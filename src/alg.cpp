@@ -1,9 +1,9 @@
-#include  <fstream>
-#include  <locale>
-#include  <cstdlib>
-#include  <string>
-#include  <cctype>
-#include  "bst.h"
+#include <fstream>
+#include <locale>
+#include <cstdlib>
+#include <string>
+#include <cctype>
+#include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
     std::ifstream srcFile(filename);
@@ -13,46 +13,46 @@ void makeTree(BST<std::string>& tree, const char* filename) {
         return;
     }
 
-    std::string token = "";
-    int symbol = srcFile.get();
+    std::string currentWord = "";
+    int currentChar = srcFile.get();
 
-    while (symbol != EOF) {
-        if (std::isalpha(symbol)) {
-            token += static_cast<char>(std::tolower(symbol));
+    while (currentChar != EOF) {
+        if (std::isalpha(currentChar)) {
+            currentWord += static_cast<char>(std::tolower(currentChar));
         } else {
-            if (!token.empty()) {
-                tree.insert(token);
-                token.clear();
+            if (!currentWord.empty()) {
+                tree.insert(currentWord);
+                currentWord.clear();
             }
         }
-        symbol = srcFile.get();
+        currentChar = srcFile.get();
     }
 
-    if (!token.empty()) {
-        tree.insert(token);
+    if (!currentWord.empty()) {
+        tree.insert(currentWord);
     }
 
     srcFile.close();
 }
 
 void printFreq(BST<std::string>& tree) {
-    BST<std::string>::Pair* sortedData = nullptr;
-    int dataSize = tree.getSortedArray(sortedData);
+    BST<std::string>::Pair* sortedWordsArray = nullptr;
+    int arraySize = tree.getSortedArray(sortedWordsArray);
 
     std::ofstream reportFile("result/freq.txt");
     if (!reportFile.is_open()) {
         std::cout << "Error creating result file!" << std::endl;
-        if (sortedData != nullptr) {
-            delete[] sortedData;
+        if (sortedWordsArray != nullptr) {
+            delete[] sortedWordsArray;
         }
         return;
     }
 
-    for (int idx = 0; idx < dataSize; ++idx) {
-        std::cout << sortedData[idx].word << ": " << sortedData[idx].count << std::endl;
-        reportFile << sortedData[idx].word << ": " << sortedData[idx].count << "\n";
+    for (int index = 0; index < arraySize; ++index) {
+        std::cout << sortedWordsArray[index].word << ": " << sortedWordsArray[index].count << std::endl;
+        reportFile << sortedWordsArray[index].word << ": " << sortedWordsArray[index].count << "\n";
     }
 
     reportFile.close();
-    delete[] sortedData;
+    delete[] sortedWordsArray;
 }
