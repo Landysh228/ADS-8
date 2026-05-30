@@ -1,100 +1,72 @@
-#include "bst.h"
-#include <fstream>
+// Copyright 2021 NNTU-CS
 #include <iostream>
-#include <cctype>
+#include <fstream>
+#include <locale>
+#include <cstdlib>
 #include <string>
+#include <vector>
 #include <algorithm>
+#include <utility>
+
+#include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
-    std::ifstream srcFile(filename);
-    
-    if (!srcFile.is_open()) {
+    std::ifstream file(filename);
+
+    if (!file) {
         std::cout << "File error!" << std::endl;
         return;
     }
-    
-    std::string currentWord = "";
-    int currentChar = srcFile.get();
-    
-    while (currentChar != EOF) {
-        if (std::isalpha(currentChar) && static_cast<char>(currentChar) >= 'A' && static_cast<char>(currentChar) <= 'z') {
-            currentWord += static_cast<char>(std::tolower(currentChar));
+
+    std::string buf = "";
+
+    while (!file.eof()) {
+        int ch = file.get();
+
+        if (ch >= 'A' && ch <= 'Z') {
+            buf += static_cast<char>(ch + 32);
+        } else if (ch >= 'a' && ch <= 'z') {
+            buf += static_cast<char>(ch);
         } else {
-            if (!currentWord.empty()) {
-                tree.insert(currentWord);
-                currentWord.clear();
+            if (!buf.empty()) {
+                tree.insert(buf);
+                buf = "";
             }
         }
-        currentChar = srcFile.get();
     }
-    
-    if (!currentWord.empty()) {
-        tree.insert(currentWord);
+
+    if (!buf.empty()) {
+        tree.insert(buf);
     }
-    
-    srcFile.close();
+
+    file.close();
 }
 
-bool compareByFrequency(const BST<std::string>::Pair& a, const BST<std::string>::Pair& b) {
-    return a.count > b.count;
+bool cmp(std::pair<std::string, int> a,
+         std::pair<std::string, int> b) {
+    return a.second > b.second;
 }
 
 void printFreq(BST<std::string>& tree) {
-    BST<std::string>::Pair* sortedWordsArray = nullptr;
-    int arraySize = tree.getSortedArray(sortedWordsArray);
-    
-    if (arraySize == 0) {
-        std::cout << "Tree is empty!" << std::endl;
-        return;
+    std::vector<std::pair<std::string, int>> vec;
+
+    tree.getWords(&vec);
+
+    std::sort(vec.begin(), vec.end(), cmp);
+
+    std::ofstream fout("result/freq.txt");
+
+    for (size_t i = 0; i < vec.size(); i++) {
+        std::cout << vec[i].first
+                  << " "
+                  << vec[i].second
+                  << std::endl;
+
+        fout << vec[i].first
+             << " "
+             << vec[i].second
+             << std::endl;
     }
-    
-    BST<std::string>::Pair* freqSortedArray = new BST<std::string>::Pair[arraySize];
-    for (int i = 0; i < arraySize; i++) {
-        freqSortedArray[i] = sortedWordsArray[i];
-    }
-    
-    std::sort(freqSortedArray, freqSortedArray + arraySize, compareByFrequency);
-    
-    std::ofstream reportFile("result/freq.txt");
-    if (!reportFile.is_open()) {
-        std::cout << "Error creating result file!" << std::endl;
-        delete[] sortedWordsArray;
-        delete[] freqSortedArray;
-        return;
-    }
-    
-    std::cout << "\n=== WORD FREQUENCY ANALYSIS ===" << std::endl;
-    std::cout << "Total unique words: " << arraySize << std::endl;
-    std::cout << "Tree depth: " << tree.depth() << std::endl;
-    std::cout << "\nWords sorted by frequency (descending):" << std::endl;
-    std::cout << "=================================" << std::endl;
-    
-    reportFile << "=== WORD FREQUENCY ANALYSIS ===" << std::endl;
-    reportFile << "Total unique words: " << arraySize << std::endl;
-    reportFile << "Tree depth: " << tree.depth() << std::endl;
-    reportFile << "\nWords sorted by frequency (descending):" << std::endl;
-    reportFile << "=================================" << std::endl;
-    
-    int displayLimit = std::min(20, arraySize);
-    for (int index = 0; index < displayLimit; ++index) {
-        std::cout << freqSortedArray[index].word << ": " << freqSortedArray[index].count << std::endl;
-        reportFile << freqSortedArray[index].word << ": " << freqSortedArray[index].count << std::endl;
-    }
-    
-    if (arraySize > 20) {
-        std::cout << "... and " << (arraySize - 20) << " more words" << std::endl;
-        reportFile << "... and " << (arraySize - 20) << " more words" << std::endl;
-    }
-    
-    reportFile << "\n=== WORDS IN ALPHABETICAL ORDER ===" << std::endl;
-    for (int index = 0; index < arraySize; ++index) {
-        reportFile << sortedWordsArray[index].word << ": " << sortedWordsArray[index].count << std::endl;
-    }
-    
-    reportFile.close();
-    
-    delete[] sortedWordsArray;
-    delete[] freqSortedArray;
-    
-    std::cout << "\nResults saved to result/freq.txt" << std::endl;
+
+    fout.close();
 }
